@@ -24,7 +24,7 @@ func Middleware(token string, opt ...Options) gin.HandlerFunc {
 			if len(opt) > 0 && opt[0].OnAuthorizationHeaderMissing != nil {
 				opt[0].OnAuthorizationHeaderMissing(c)
 			} else {
-				c.AbortWithStatus(http.StatusBadRequest)
+				c.AbortWithStatus(http.StatusUnauthorized)
 			}
 			return
 		}
@@ -37,7 +37,7 @@ func Middleware(token string, opt ...Options) gin.HandlerFunc {
 			if len(opt) > 0 && opt[0].OnAuthorizationHeaderInvalid != nil {
 				opt[0].OnAuthorizationHeaderInvalid(c)
 			} else {
-				c.AbortWithStatus(http.StatusBadRequest)
+				c.AbortWithStatus(http.StatusUnauthorized)
 			}
 			return
 		}
