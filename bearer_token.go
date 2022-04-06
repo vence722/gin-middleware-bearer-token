@@ -32,8 +32,8 @@ func Middleware(token string, opt ...Options) gin.HandlerFunc {
 		authTokens := strings.Split(authHeader, " ")
 
 		// The value of authorization header is invalid
-		// It should start with "Bearer"
-		if authTokens[0] != "Bearer" {
+		// It should start with "Bearer ", then the token value
+		if len(authTokens) != 2 || authTokens[0] != "Bearer" {
 			if len(opt) > 0 && opt[0].OnAuthorizationHeaderInvalid != nil {
 				opt[0].OnAuthorizationHeaderInvalid(c)
 			} else {
