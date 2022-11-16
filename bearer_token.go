@@ -7,6 +7,8 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+type TokenVerificationFunc func(string, *gin.Context) bool
+
 type Handler func(*gin.Context)
 
 type Options struct {
@@ -15,7 +17,7 @@ type Options struct {
 	OnTokenInvalid               Handler
 }
 
-func Middleware(token string, opt ...Options) gin.HandlerFunc {
+func Middleware(tokenVerificationFunc TokenVerificationFunc, opt ...Options) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		authHeader := c.GetHeader("Authorization")
 
@@ -42,17 +44,26 @@ func Middleware(token string, opt ...Options) gin.HandlerFunc {
 			return
 		}
 
-		// Token value is invalid
-		if authTokens[1] != token {
-			if len(opt) > 0 && opt[0].OnTokenInvalid != nil {
-				opt[0].OnTokenInvalid(c)
-			} else {
-				c.AbortWithStatus(http.StatusUnauthorized)
-			}
+		// Check token value is valid or not
+		if !tokenVerificationFunc(authTokens[1], c) {
 			return
 		}
 
 		// Everything looks fine, process next action
 		c.Next()
 	}
+}
+
+func MiddlewareWithStaticToken(token string, opt ...Options) gin.HandlerFunc {
+	return Middleware(func(s string, c *gin.Context) bool {
+		if s != token {
+			if len(opt) > 0 && opt[0].OnTokenInvalid != nil {
+				opt[0].OnTokenInvalid(c)
+			} else {
+				c.AbortWithStatus(http.StatusUnauthorized)
+			}
+			return false
+		}
+		return true
+	}, opt...)
 }
